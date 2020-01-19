@@ -3,6 +3,7 @@ import './App.css';
 import './Global.css';
 import './Sidebar.css';
 import './Main.css';
+import api from './services/api'
 
 function App() {
   const [latitude, setLatitude] = useState('');
@@ -26,8 +27,18 @@ function App() {
     );
   }, []);
 
-  const handelSubmit = async (event) => {
+  async function handelSubmit(event) {
     event.preventDefault();
+    console.log("teste");
+
+    const response = await api.post('/devs', {
+      github_username,
+      techs,
+      latitude,
+      longitude
+    });
+
+    console.log(response.data);
   };
 
   return (
