@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 1211;
+const PORT = process.env.PORT || 3333;
 const mongoose = require('mongoose');
 const { url, flags } = require('../config/database');
 const routes = require('./routes');
