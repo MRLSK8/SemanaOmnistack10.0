@@ -45,8 +45,8 @@ function Main({ navigation }) {
         setCurrentRegion({
           latitude,
           longitude,
-          latitudeDelta: 0.014,
-          longitudeDelta: 0.014
+          latitudeDelta: 0.0010,
+          longitudeDelta: 0.0010
         });
       }
     }

@@ -23,7 +23,6 @@ exports.setUpWebsocket = server => {
 };
 
 exports.findConnections = (coordinates, techs) => {
-
   return connections.filter(connection => {
     return (
       calculateDistance(coordinates, connection.coordinates) < 10 &&
@@ -35,5 +34,5 @@ exports.findConnections = (coordinates, techs) => {
 exports.sendMessage = (to, message, data) => {
   to.forEach(connection => {
     io.to(connection.id).emit(message, data);
-  })
-}
+  });
+};

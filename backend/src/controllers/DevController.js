@@ -13,35 +13,44 @@ module.exports = {
   async store(request, response) {
     const { github_username, techs, latitude, longitude } = request.body;
 
-    const apiResponses = await axios.get(
-      `https://api.github.com/users/${github_username}`
-    );
+    const dev = await Dev.find({ github_username });
 
-    const { name = login, avatar_url, bio } = apiResponses.data;
+    if (dev.length === 0) {
+      try {
+        const apiResponses = await axios.get(
+          `https://api.github.com/users/${github_username}`
+        );
 
-    const techsArray = parseStringAsArray(techs);
+        const { name = login, avatar_url, bio } = apiResponses.data;
 
-    const location = {
-      type: 'Point',
-      coordinates: [longitude, latitude]
-    };
+        const techsArray = parseStringAsArray(techs);
 
-    const dev = await Dev.create({
-      name,
-      github_username,
-      bio,
-      avatar_url,
-      techs: techsArray,
-      location
-    });
+        const location = {
+          type: 'Point',
+          coordinates: [longitude, latitude]
+        };
 
-    const sendSocketMessageTo = findConnections(
-      { latitude, longitude },
-      techsArray
-    );
+        const dev = await Dev.create({
+          name,
+          github_username,
+          bio,
+          avatar_url,
+          techs: techsArray,
+          location
+        });
 
-    sendMessage(sendSocketMessageTo, 'NewDev', dev);
+        const sendSocketMessageTo = findConnections(
+          { latitude, longitude },
+          techsArray
+        );
 
-    return response.json(dev);
+        sendMessage(sendSocketMessageTo, 'NewDev', dev);
+        return response.json(dev);
+      } catch (error) {
+        return response.status(404).json({ Error: 'User not found' });
+      }
+    } else {
+      return response.json({ Error: 'User already exist' });
+    }
   }
 };

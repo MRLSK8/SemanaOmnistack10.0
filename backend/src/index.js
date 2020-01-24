@@ -19,4 +19,6 @@ app.use(cors());
 
 app.use(routes);
 
-server.listen(PORT);
+server.listen(PORT, () => {
+  console.log('Running on PORT: ', PORT)
+});
