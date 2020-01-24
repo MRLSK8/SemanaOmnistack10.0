@@ -11,9 +11,9 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity
+  TouchableOpacity,
+  KeyboardAvoidingView
 } from 'react-native';
-import {} from '@expo/vector-icons';
 
 import {
   requestPermissionsAsync,
@@ -28,12 +28,19 @@ function Main({ navigation }) {
   useEffect(() => {
     async function loadInicialPosition() {
       const { granted } = await requestPermissionsAsync();
+
       if (granted) {
         const location = await getCurrentPositionAsync({
           enableHighAccuracy: true
         });
 
         const { latitude, longitude } = location.coords;
+
+        const response = await api.get('/search', {
+          params: { latitude, longitude }
+        });
+
+        setDevs(response.data);
 
         setCurrentRegion({
           latitude,
@@ -47,7 +54,7 @@ function Main({ navigation }) {
     loadInicialPosition();
   }, []);
 
-  useEffect(()=> {
+  useEffect(() => {
     subscribeToNewDevs(dev => setDevs([...devs, dev]));
   }, [devs]);
 
@@ -120,6 +127,7 @@ function Main({ navigation }) {
             </Marker>
           ))}
       </MapView>
+
       <View style={styles.searchForm}>
         <TextInput
           style={styles.searchInput}
@@ -130,6 +138,7 @@ function Main({ navigation }) {
           value={techs}
           onChangeText={setTechs}
         />
+
         <TouchableOpacity onPress={loadDevs} style={styles.loadButton}>
           <MaterialIcons name='my-location' size={30} color='#FFF' />
         </TouchableOpacity>
@@ -171,8 +180,9 @@ const styles = StyleSheet.create({
   },
 
   searchForm: {
+    flex: 1,
     position: 'absolute',
-    top: 20,
+    bottom: 20,
     left: 20,
     right: 20,
     zIndex: 5,
