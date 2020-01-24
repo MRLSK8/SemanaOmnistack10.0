@@ -1,6 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import MapView, { Marker, Callout } from 'react-native-maps';
-import { StyleSheet, Image, View, Text, TextInput } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
+import api from '../services/api';
+
+import {
+  StyleSheet,
+  Image,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity
+} from 'react-native';
+import {} from '@expo/vector-icons';
+
 import {
   requestPermissionsAsync,
   getCurrentPositionAsync
@@ -8,6 +20,8 @@ import {
 
 function Main({ navigation }) {
   const [currentRegion, setCurrentRegion] = useState(null);
+  const [devs, setDevs] = useState([]);
+  const [techs, setTechs] = useState('');
 
   useEffect(() => {
     async function loadInicialPosition() {
@@ -31,33 +45,82 @@ function Main({ navigation }) {
     loadInicialPosition();
   }, []);
 
+  async function loadDevs() {
+    const { latitude, longitude } = currentRegion;
+
+    const response = await api.get('/search', {
+      params: {
+        latitude,
+        longitude,
+        techs: techs
+      }
+    });
+
+    setDevs(response.data);
+    setTechs('');
+  }
+
+  function handleReagionChange(region) {
+    setCurrentRegion(region);
+  }
+
   if (!currentRegion) {
     return null;
   }
 
   return (
-    <MapView initialRegion={currentRegion} style={styles.map}>
-      <Marker coordinate={{ latitude: -8.2777339, longitude: -35.9738066 }}>
-        <Image
-          style={styles.avatar}
-          source={{
-            uri: 'https://avatars1.githubusercontent.com/u/39857752?s=460&v=4'
-          }}
+    <>
+      <MapView
+        onRegionChangeComplete={handleReagionChange}
+        initialRegion={currentRegion}
+        style={styles.map}
+      >
+        {devs &&
+          devs.map(dev => (
+            <Marker
+              key={dev._id}
+              coordinate={{
+                longitude: dev.location.coordinates[0],
+                latitude: dev.location.coordinates[1]
+              }}
+            >
+              <Image
+                style={styles.avatar}
+                source={{
+                  uri: dev.avatar_url
+                }}
+              />
+              <Callout
+                onPress={() => {
+                  navigation.navigate('Profile', {
+                    github_username: dev.github_username
+                  });
+                }}
+              >
+                <View style={styles.callout}>
+                  <Text style={styles.devName}>{dev.name}</Text>
+                  <Text style={styles.devBio}>{dev.bio}</Text>
+                  <Text style={styles.devTechs}>{dev.techs.join(', ')}</Text>
+                </View>
+              </Callout>
+            </Marker>
+          ))}
+      </MapView>
+      <View style={styles.searchForm}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder='Buscar devs por techs'
+          placeholderTextColor='#999'
+          autoCapitalize='words'
+          autoCorrect={false}
+          value={techs}
+          onChangeText={setTechs}
         />
-        <Callout onPress={() => {navigation.navigate('Profile', {
-          github_username: 'mrlsk8'
-        })}}>
-          <View style={styles.callout}>
-            <Text style={styles.devName}>Marcelo Lima</Text>
-            <Text style={styles.devBio}>
-              I'm majoring in Information Systems at the university of
-              Pernambuco (UPE). Currently in the 5th period!
-            </Text>
-            <Text style={styles.devTechs}>ReactJS, React Native, Node.js</Text>
-          </View>
-        </Callout>
-      </Marker>
-    </MapView>
+        <TouchableOpacity onPress={loadDevs} style={styles.loadButton}>
+          <MaterialIcons name='my-location' size={30} color='#FFF' />
+        </TouchableOpacity>
+      </View>
+    </>
   );
 }
 
@@ -91,6 +154,42 @@ const styles = StyleSheet.create({
 
   devTechs: {
     marginTop: 5
+  },
+
+  searchForm: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    right: 20,
+    zIndex: 5,
+    flexDirection: 'row'
+  },
+
+  searchInput: {
+    flex: 1,
+    height: 50,
+    backgroundColor: '#FFF',
+    color: '#333',
+    borderRadius: 25,
+    paddingHorizontal: 20,
+    fontSize: 16,
+    shadowColor: 'red',
+    shadowOpacity: 0.2,
+    shadowOffset: {
+      width: 4,
+      height: 4
+    },
+    elevation: 5
+  },
+
+  loadButton: {
+    width: 50,
+    height: 50,
+    backgroundColor: '#8E4DFF',
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 15
   }
 });
 
